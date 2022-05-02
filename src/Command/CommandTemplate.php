@@ -3,19 +3,24 @@ declare(strict_types=1);
 
 namespace Elephox\Console\Command;
 
-use Elephox\Collection\ArrayList;
+use GetOpt\Command;
 
-class CommandTemplate
+class CommandTemplate extends Command
 {
 	/**
+	 * Command constructor.
+	 *
 	 * @param string $name
-	 * @param ArrayList<ArgumentTemplate> $argumentTemplates
-	 * @param string $description
+	 * @param callable(\GetOpt\GetOpt): (int|null) $handler
+	 * @param list<OptionTemplate>|null $options
+	 * @param list<ArgumentTemplate>|null $arguments
 	 */
-	public function __construct(
-		public readonly string $name,
-		public readonly string $description,
-		public readonly ArrayList $argumentTemplates,
-	) {
+	public function __construct($name, $handler, $options = null, ?array $arguments = null)
+	{
+		parent::__construct($name, $handler, $options);
+
+		if ($arguments !== null) {
+			$this->addOperands($arguments);
+		}
 	}
 }

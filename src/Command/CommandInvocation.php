@@ -3,50 +3,58 @@ declare(strict_types=1);
 
 namespace Elephox\Console\Command;
 
-use InvalidArgumentException;
-use LogicException;
+use ArrayAccess;
+use GetOpt\GetOpt;
 
 /**
- * @property string $name
- * @property string $invokedBinary
- * @property string $commandLine
+ * @implements ArrayAccess<string, mixed>
  */
-class CommandInvocation
+class CommandInvocation implements ArrayAccess
 {
-	public function __construct(
-		public readonly RawCommandInvocation $raw,
-		public readonly ArgumentList $arguments,
-	) {
+	public static function fromGetOpt(GetOpt $getOpt): self
+	{
+		return new self($getOpt);
 	}
 
-	public function getArgument(string $name): Argument
+	private function __construct(private readonly GetOpt $getOpt)
 	{
-		return $this->getOptionalArgument($name) ?? throw new InvalidArgumentException("Argument with name \"$name\" not found.");
 	}
 
-	public function getOptionalArgument(string $name): ?Argument
+	public function __get(string $name)
 	{
-		return $this->arguments
-			->firstOrDefault(
-				null,
-				static fn (Argument $arg): bool => $arg->name === $name,
-			)
-		;
+		return $this->offsetGet($name);
 	}
 
-	public function __get(string $name): null|string|int|float|bool
+	public function __isset(string $name)
 	{
-		/** @var null|string|int|float|bool */
-		return $this->raw->$name ?? $this->getArgument($name)->value;
+		return $this->offsetExists($name);
 	}
 
-	public function __isset(string $name): bool
+	public function __set(string $name, mixed $value)
 	{
-		return isset($this->raw->$name) || $this->arguments->any(static fn (Argument $arg): bool => $arg->name === $name);
+		$this->offsetSet($name, $value);
 	}
 
-	public function __set(string $name, mixed $value): void
+	public function offsetExists(mixed $offset): bool
 	{
-		throw new LogicException('Cannot set argument value');
+		return $this->getOpt->offsetExists($offset);
+	}
+
+	/**
+	 * @return mixed
+	 */
+	public function offsetGet(mixed $offset): mixed
+	{
+		return $this->getOpt->offsetGet($offset);
+	}
+
+	public function offsetSet(mixed $offset, mixed $value): void
+	{
+		$this->getOpt->offsetSet($offset, $value);
+	}
+
+	public function offsetUnset(mixed $offset): void
+	{
+		$this->getOpt->offsetUnset($offset);
 	}
 }

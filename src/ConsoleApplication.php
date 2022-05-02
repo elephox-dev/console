@@ -6,13 +6,13 @@ namespace Elephox\Console;
 use Elephox\Configuration\Contract\Configuration;
 use Elephox\Console\Command\CommandCollection;
 use Elephox\Console\Command\CommandNotFoundException;
-use Elephox\Console\Command\HelpCommand;
+use Elephox\Console\Command\LoggerHelpRenderer;
 use Elephox\Console\Command\NoCommandInCommandLineException;
-use Elephox\Console\Command\RawCommandInvocation;
-use Elephox\Console\Command\RequiredArgumentMissingException;
+use Elephox\Console\Command\InvalidCommandLineException;
 use Elephox\Console\Contract\ConsoleEnvironment;
 use Elephox\DI\Contract\ServiceCollection as ServiceCollectionContract;
 use Elephox\Support\Contract\ExceptionHandler;
+use GetOpt\HelpInterface;
 use Psr\Log\LoggerInterface;
 
 class ConsoleApplication
@@ -47,22 +47,20 @@ class ConsoleApplication
 		return $this->exceptionHandler;
 	}
 
-	public function run(): void
+	public function run(): never
 	{
 		global $argv;
 
-		$this->commands->loadFromClass(HelpCommand::class);
-
 		try {
-			$invocation = RawCommandInvocation::fromCommandLine($argv);
+			$result = $this->commands->process($argv);
+			if ($result instanceof LoggerHelpRenderer) {
+				$result->renderToLogger($this->logger(), $this->commands->getGetOpt(), []);
 
-			$code = $this->handle($invocation);
-		} catch (CommandNotFoundException|NoCommandInCommandLineException $e) {
-			$this->logger()->error($e->getMessage());
-
-			$this->handle(RawCommandInvocation::fromCommandLine([$argv[0], 'help']));
-			$code = 1;
-		} catch (RequiredArgumentMissingException $e) {
+				$code = 1;
+			} else {
+				$code = $result ?? 0;
+			}
+		} catch (InvalidCommandLineException $e) {
 			$this->logger()->error($e->getMessage());
 
 			$this->logger()->error("Use '" . implode(' ', [$argv[0], 'help', $argv[1]]) . "' to get help for this command.");
@@ -70,12 +68,5 @@ class ConsoleApplication
 		}
 
 		exit($code);
-	}
-
-	public function handle(RawCommandInvocation $invocation): int
-	{
-		$compiled = $this->commands->findCompiled($invocation);
-
-		return $compiled->handler->handle($invocation->build($compiled->template)) ?? 0;
 	}
 }

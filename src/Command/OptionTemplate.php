@@ -3,8 +3,8 @@ declare(strict_types=1);
 
 namespace Elephox\Console\Command;
 
-use GetOpt\Operand;
+use GetOpt\Option;
 
-class ArgumentTemplate extends Operand
+class OptionTemplate extends Option
 {
 }

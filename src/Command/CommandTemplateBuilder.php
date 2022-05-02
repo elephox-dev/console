@@ -4,64 +4,92 @@ declare(strict_types=1);
 namespace Elephox\Console\Command;
 
 use Elephox\Collection\ArrayList;
+use Elephox\Console\Command\Contract\CommandHandler;
+use GetOpt\GetOpt;
+use GetOpt\HelpInterface;
+use GetOpt\Option;
 use InvalidArgumentException;
 
 class CommandTemplateBuilder
 {
 	/**
 	 * @param null|string $name
-	 * @param null|ArrayList<ArgumentTemplate> $arguments
 	 * @param null|string $description
+	 * @param null|string $shortDescription
+	 * @param null|ArrayList<ArgumentTemplateBuilder> $arguments
+	 * @param null|ArrayList<OptionTemplateBuilder> $options
 	 */
 	public function __construct(
 		private ?string $name = null,
 		private ?string $description = null,
+		private ?string $shortDescription = null,
 		private ?ArrayList $arguments = null,
+		private ?ArrayList $options = null,
 	) {
 	}
 
-	public function name(?string $name): self
+	public function name(string $name): self
 	{
 		$this->name = $name;
 
 		return $this;
 	}
 
-	public function description(?string $description): self
+	public function description(string $description): self
 	{
 		$this->description = $description;
 
 		return $this;
 	}
 
-	public function argument(string $name, ?string $description = null, null|string|int|float|bool $default = null, bool $required = true): self
+	public function shortDescription(string $shortDescription): self
 	{
-		/** @var ArrayList<ArgumentTemplate> */
-		$this->arguments ??= new ArrayList();
-		$this->arguments->add(new ArgumentTemplate($name, $description, $default, $required));
+		$this->shortDescription = $shortDescription;
 
 		return $this;
 	}
 
-	public function optional(string $name, null|string|int|float|bool $default, ?string $description = null): self
+	public function option(?string $name = null, ?string $short = null): OptionTemplateBuilder
 	{
-		return $this->argument($name, $description, $default, false);
+		/** @var ArrayList<OptionTemplateBuilder> */
+		$this->options = $this->options ?? new ArrayList();
+
+		$optionBuilder = new OptionTemplateBuilder($name, $short);
+		$this->options->add($optionBuilder);
+
+		return $optionBuilder;
 	}
 
-	public function required(string $name, ?string $description = null): self
+	public function argument(string $name): ArgumentTemplateBuilder
 	{
-		return $this->argument($name, $description);
+		/** @var ArrayList<ArgumentTemplateBuilder> */
+		$this->arguments = $this->arguments ?? new ArrayList();
+
+		$argumentBuilder = new ArgumentTemplateBuilder($name);
+		$this->arguments->add($argumentBuilder);
+
+		return $argumentBuilder;
 	}
 
-	public function build(): CommandTemplate
+	public function build(CommandHandler $handler): CommandTemplate
 	{
-		/** @var ArrayList<ArgumentTemplate> */
-		$this->arguments ??= new ArrayList();
-
-		return new CommandTemplate(
+		$command = new CommandTemplate(
 			$this->name ?? throw new InvalidArgumentException('Command name is required'),
-			$this->description ?? '',
-			$this->arguments,
+			static function (GetOpt $getOpt) use ($handler): int|null {
+				return $handler->handle(CommandInvocation::fromGetOpt($getOpt));
+			},
+			$this->options?->select(fn (OptionTemplateBuilder $builder): OptionTemplate => $builder->build())->toList(),
+			$this->arguments?->select(fn (ArgumentTemplateBuilder $builder): ArgumentTemplate => $builder->build())->toList(),
 		);
+
+		if ($this->description !== null) {
+			$command->setDescription($this->description);
+		}
+
+		if ($this->shortDescription !== null) {
+			$command->setShortDescription($this->shortDescription);
+		}
+
+		return $command;
 	}
 }

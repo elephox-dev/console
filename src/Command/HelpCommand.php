@@ -18,11 +18,8 @@ class HelpCommand implements Contract\CommandHandler
 
 	public function configure(CommandTemplateBuilder $builder): void
 	{
-		$builder
-			->name('help')
-			->description('Display help for a command')
-			->argument('command', 'The command to display help for', required: false)
-		;
+		$builder->name('help')->description('Display help for a command');
+		$builder->option('command')->description('The command to display help for');
 	}
 
 	public function handle(CommandInvocation $command): int|null
@@ -70,7 +67,7 @@ class HelpCommand implements Contract\CommandHandler
 			$this->logger->info(Console::green('Arguments:'));
 
 			$argumentData = [];
-			foreach ($commandTemplate->argumentTemplates as $argumentTemplate) {
+			foreach ($commandTemplate->options as $argumentTemplate) {
 				$openBracket = $argumentTemplate->required ? '<' : '[';
 				$closeBracket = $argumentTemplate->required ? '>' : ']';
 				$name = $openBracket . $argumentTemplate->name;
