@@ -6,8 +6,6 @@ namespace Elephox\Console\Command;
 use Elephox\Collection\ArrayList;
 use Elephox\Console\Command\Contract\CommandHandler;
 use GetOpt\GetOpt;
-use GetOpt\HelpInterface;
-use GetOpt\Option;
 use InvalidArgumentException;
 
 class CommandTemplateBuilder
@@ -52,7 +50,7 @@ class CommandTemplateBuilder
 	public function option(?string $name = null, ?string $short = null): OptionTemplateBuilder
 	{
 		/** @var ArrayList<OptionTemplateBuilder> */
-		$this->options = $this->options ?? new ArrayList();
+		$this->options ??= new ArrayList();
 
 		$optionBuilder = new OptionTemplateBuilder($name, $short);
 		$this->options->add($optionBuilder);
@@ -63,7 +61,7 @@ class CommandTemplateBuilder
 	public function argument(string $name): ArgumentTemplateBuilder
 	{
 		/** @var ArrayList<ArgumentTemplateBuilder> */
-		$this->arguments = $this->arguments ?? new ArrayList();
+		$this->arguments ??= new ArrayList();
 
 		$argumentBuilder = new ArgumentTemplateBuilder($name);
 		$this->arguments->add($argumentBuilder);
@@ -75,11 +73,9 @@ class CommandTemplateBuilder
 	{
 		$command = new CommandTemplate(
 			$this->name ?? throw new InvalidArgumentException('Command name is required'),
-			static function (GetOpt $getOpt) use ($handler): int|null {
-				return $handler->handle(CommandInvocation::fromGetOpt($getOpt));
-			},
-			$this->options?->select(fn (OptionTemplateBuilder $builder): OptionTemplate => $builder->build())->toList(),
-			$this->arguments?->select(fn (ArgumentTemplateBuilder $builder): ArgumentTemplate => $builder->build())->toList(),
+			static fn (GetOpt $getOpt): int|null => $handler->handle(CommandInvocation::fromGetOpt($getOpt)),
+			$this->options?->select(static fn (OptionTemplateBuilder $builder): OptionTemplate => $builder->build())->toList(),
+			$this->arguments?->select(static fn (ArgumentTemplateBuilder $builder): ArgumentTemplate => $builder->build())->toList(),
 		);
 
 		if ($this->description !== null) {

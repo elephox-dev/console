@@ -103,7 +103,7 @@ class OptionTemplateBuilder
 			if (is_callable($message)) {
 				$this->validationMessage = $message(...);
 			} else {
-				$this->validationMessage = static fn(): string => (string) $message;
+				$this->validationMessage = static fn (): string => (string) $message;
 			}
 		}
 

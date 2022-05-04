@@ -4,18 +4,14 @@ declare(strict_types=1);
 namespace Elephox\Console\Command;
 
 use Elephox\Autoloading\Composer\NamespaceLoader;
-use Elephox\Collection\ObjectMap;
 use Elephox\Console\Command\Contract\CommandHandler;
 use Elephox\DI\Contract\Resolver;
 use GetOpt\ArgumentException;
 use GetOpt\ArgumentException\Missing;
 use GetOpt\Command;
 use GetOpt\GetOpt;
-use GetOpt\HelpInterface;
 use Iterator;
-use IteratorAggregate;
 use LogicException;
-use function PHPUnit\Framework\assertSame;
 
 class CommandCollection
 {

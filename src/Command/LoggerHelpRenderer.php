@@ -89,7 +89,7 @@ class LoggerHelpRenderer implements HelpInterface
 			$logger->info(sprintf(
 				'  %s%s',
 				$operand->getName(),
-				$this->getOperandDescription($operand)
+				$this->getOperandDescription($operand),
 			));
 		}
 	}
@@ -151,7 +151,7 @@ class LoggerHelpRenderer implements HelpInterface
 	{
 		$logger->info(sprintf(
 			'Command: %s',
-			$command->getName()
+			$command->getName(),
 		));
 
 		$this->renderDescription($logger, $command);
@@ -159,15 +159,15 @@ class LoggerHelpRenderer implements HelpInterface
 		$this->renderOptions($logger, $command);
 	}
 
-	private function renderDescription(LoggerInterface $logger, CommandInterface $command)
+	private function renderDescription(LoggerInterface $logger, CommandInterface $command): void
 	{
 		$logger->info(sprintf(
 			'Description: %s',
-			$command->getDescription()
+			$command->getDescription(),
 		));
 	}
 
-	private function renderCommands(LoggerInterface $logger, GetOpt $getopt)
+	private function renderCommands(LoggerInterface $logger, GetOpt $getopt): void
 	{
 		$logger->info('Commands:');
 
@@ -175,7 +175,7 @@ class LoggerHelpRenderer implements HelpInterface
 			$logger->info(sprintf(
 				'  %s%s',
 				$command->getName(),
-				$this->getCommandDescription($command)
+				$this->getCommandDescription($command),
 			));
 		}
 	}

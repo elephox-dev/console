@@ -5,14 +5,11 @@ namespace Elephox\Console;
 
 use Elephox\Configuration\Contract\Configuration;
 use Elephox\Console\Command\CommandCollection;
-use Elephox\Console\Command\CommandNotFoundException;
 use Elephox\Console\Command\LoggerHelpRenderer;
-use Elephox\Console\Command\NoCommandInCommandLineException;
 use Elephox\Console\Command\InvalidCommandLineException;
 use Elephox\Console\Contract\ConsoleEnvironment;
 use Elephox\DI\Contract\ServiceCollection as ServiceCollectionContract;
 use Elephox\Support\Contract\ExceptionHandler;
-use GetOpt\HelpInterface;
 use Psr\Log\LoggerInterface;
 
 class ConsoleApplication

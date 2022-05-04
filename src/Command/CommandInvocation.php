@@ -30,7 +30,7 @@ class CommandInvocation implements ArrayAccess
 		return $this->offsetExists($name);
 	}
 
-	public function __set(string $name, mixed $value)
+	public function __set(string $name, mixed $value): void
 	{
 		$this->offsetSet($name, $value);
 	}
@@ -42,6 +42,8 @@ class CommandInvocation implements ArrayAccess
 
 	/**
 	 * @return mixed
+	 *
+	 * @param mixed $offset
 	 */
 	public function offsetGet(mixed $offset): mixed
 	{

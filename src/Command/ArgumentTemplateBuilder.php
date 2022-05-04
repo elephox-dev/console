@@ -81,7 +81,7 @@ class ArgumentTemplateBuilder
 			if (is_callable($message)) {
 				$this->validationMessage = $message(...);
 			} else {
-				$this->validationMessage = static fn(): string => (string)$message;
+				$this->validationMessage = static fn (): string => (string) $message;
 			}
 		}
 
@@ -90,7 +90,7 @@ class ArgumentTemplateBuilder
 
 	public function build(): ArgumentTemplate
 	{
-		$mode= Operand::OPTIONAL;
+		$mode = Operand::OPTIONAL;
 
 		if ($this->required) {
 			$mode |= Operand::REQUIRED;
