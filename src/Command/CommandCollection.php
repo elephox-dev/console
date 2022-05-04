@@ -76,7 +76,7 @@ class CommandCollection
 
 	public function process(array $argv): null|int|LoggerHelpRenderer
 	{
-		array_shift($argv);
+		array_shift($argv); // MAYBE: remove this line because the argv might not contain the script name
 
 		try {
 			$this->getOpt->process($argv);

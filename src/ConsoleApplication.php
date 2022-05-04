@@ -51,7 +51,7 @@ class ConsoleApplication
 		try {
 			$result = $this->commands->process($argv);
 			if ($result instanceof LoggerHelpRenderer) {
-				$result->renderToLogger($this->logger(), $this->commands->getGetOpt(), []);
+				$result->renderToLogger($this->logger(), $this->commands->getGetOpt());
 
 				$code = 1;
 			} else {

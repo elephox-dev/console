@@ -12,26 +12,26 @@ use Psr\Log\LoggerInterface;
 
 class LoggerHelpRenderer implements HelpInterface
 {
-	public function renderToLogger(LoggerInterface $logger, GetOpt $getopt, array $data = []): void
+	public function renderToLogger(LoggerInterface $logger, GetOpt $getOpt): void
 	{
-		$this->renderUsage($logger, $getopt);
+		$this->renderUsage($logger, $getOpt);
 
-		if ($getopt->hasOperands()) {
-			$this->renderOperands($logger, $getopt);
+		if ($getOpt->hasOperands()) {
+			$this->renderOperands($logger, $getOpt);
 		}
 
-		if ($getopt->hasOptions()) {
-			$this->renderOptions($logger, $getopt);
+		if ($getOpt->hasOptions()) {
+			$this->renderOptions($logger, $getOpt);
 		}
 
-		if ($getopt->hasCommands() && $command = $getopt->getCommand()) {
-			$this->renderCommand($logger, $command);
+		if ($getOpt->hasCommands() && $command = $getOpt->getCommand()) {
+			$this->renderCommand($logger, $getOpt, $command);
 		} else {
-			$this->renderCommands($logger, $getopt);
+			$this->renderCommands($logger, $getOpt);
 		}
 	}
 
-	public function render(GetOpt $getopt, array $data = []): string
+	public function render(GetOpt $getOpt, array $data = []): string
 	{
 		if (!array_key_exists('logger', $data)) {
 			throw new InvalidArgumentException('Missing logger in data');
@@ -43,49 +43,49 @@ class LoggerHelpRenderer implements HelpInterface
 
 		$logger = $data['logger'];
 
-		$this->renderToLogger($logger, $getopt, $data);
+		$this->renderToLogger($logger, $getOpt);
 
 		return '';
 	}
 
-	private function renderUsage(LoggerInterface $logger, GetOpt $getopt): void
+	private function renderUsage(LoggerInterface $logger, GetOpt $getOpt): void
 	{
 		$logger->info(sprintf(
 			'Usage: %s%s%s',
-			$this->getUsageCommand($getopt),
-			$this->getUsageArguments($getopt),
-			$this->getUsageOptions($getopt),
+			$this->getUsageCommand($getOpt),
+			$this->getUsageArguments($getOpt),
+			$this->getUsageOptions($getOpt),
 		));
 	}
 
-	private function getUsageCommand(GetOpt $getopt): string
+	private function getUsageCommand(GetOpt $getOpt): string
 	{
-		if ($command = $getopt->getCommand()) {
+		if ($command = $getOpt->getCommand()) {
 			return $command->getName() . ' ';
 		}
 
-		if ($getopt->hasCommands()) {
+		if ($getOpt->hasCommands()) {
 			return '<command> ';
 		}
 
 		return '';
 	}
 
-	private function getUsageArguments(GetOpt $getopt): string
+	private function getUsageArguments(GetOpt $getOpt): string
 	{
 		return '<args> ';
 	}
 
-	private function getUsageOptions(GetOpt $getopt): string
+	private function getUsageOptions(GetOpt $getOpt): string
 	{
 		return '<options>';
 	}
 
-	private function renderOperands(LoggerInterface $logger, GetOpt $getopt): void
+	private function renderOperands(LoggerInterface $logger, GetOpt $getOpt): void
 	{
 		$logger->info('Operands:');
 
-		foreach ($getopt->getOperands() as $operand) {
+		foreach ($getOpt->getOperands() as $operand) {
 			$logger->info(sprintf(
 				'  %s%s',
 				$operand->getName(),
@@ -107,11 +107,11 @@ class LoggerHelpRenderer implements HelpInterface
 		return '';
 	}
 
-	private function renderOptions(LoggerInterface $logger, GetOpt $getopt): void
+	private function renderOptions(LoggerInterface $logger, GetOpt $getOpt): void
 	{
 		$logger->info('Options:');
 
-		foreach ($getopt->getOptions() as $name => $option) {
+		foreach ($getOpt->getOptions() as $name => $option) {
 			$logger->info(sprintf(
 				'  %s%s%s',
 				$name,
@@ -147,7 +147,7 @@ class LoggerHelpRenderer implements HelpInterface
 		return ' (default: ' . $option->getDefault() . ')';
 	}
 
-	private function renderCommand(LoggerInterface $logger, CommandInterface $command): void
+	private function renderCommand(LoggerInterface $logger, GetOpt $getOpt, CommandInterface $command): void
 	{
 		$logger->info(sprintf(
 			'Command: %s',
@@ -155,8 +155,8 @@ class LoggerHelpRenderer implements HelpInterface
 		));
 
 		$this->renderDescription($logger, $command);
-		$this->renderOperands($logger, $command);
-		$this->renderOptions($logger, $command);
+		$this->renderOperands($logger, $getOpt);
+		$this->renderOptions($logger, $getOpt);
 	}
 
 	private function renderDescription(LoggerInterface $logger, CommandInterface $command): void
@@ -167,11 +167,11 @@ class LoggerHelpRenderer implements HelpInterface
 		));
 	}
 
-	private function renderCommands(LoggerInterface $logger, GetOpt $getopt): void
+	private function renderCommands(LoggerInterface $logger, GetOpt $getOpt): void
 	{
 		$logger->info('Commands:');
 
-		foreach ($getopt->getCommands() as $command) {
+		foreach ($getOpt->getCommands() as $command) {
 			$logger->info(sprintf(
 				'  %s%s',
 				$command->getName(),
