@@ -5,11 +5,13 @@ namespace Elephox\Console;
 
 use Elephox\Configuration\Contract\Configuration;
 use Elephox\Console\Command\CommandCollection;
+use Elephox\Console\Command\InvokedCommandLine;
 use Elephox\Console\Command\LoggerHelpRenderer;
 use Elephox\Console\Command\InvalidCommandLineException;
 use Elephox\Console\Contract\ConsoleEnvironment;
 use Elephox\DI\Contract\ServiceCollection as ServiceCollectionContract;
 use Elephox\Support\Contract\ExceptionHandler;
+use GetOpt\HelpInterface;
 use Psr\Log\LoggerInterface;
 
 class ConsoleApplication
@@ -46,12 +48,17 @@ class ConsoleApplication
 
 	public function run(): never
 	{
-		global $argv;
-
 		try {
-			$result = $this->commands->process($argv);
+			$commandLine = InvokedCommandLine::fromGlobals();
+			//$command = $this->commands->findByName($commandLine->arguments[0] ?? 'help');
+
+			$result = $this->commands->process($commandLine);
 			if ($result instanceof LoggerHelpRenderer) {
 				$result->renderToLogger($this->logger(), $this->commands->getGetOpt());
+
+				$code = 1;
+			} elseif ($result instanceof HelpInterface) {
+				$result->render($this->commands->getGetOpt());
 
 				$code = 1;
 			} else {
@@ -59,8 +66,7 @@ class ConsoleApplication
 			}
 		} catch (InvalidCommandLineException $e) {
 			$this->logger()->error($e->getMessage());
-
-			$this->logger()->error("Use '" . implode(' ', [$argv[0], 'help', $argv[1]]) . "' to get help for this command.");
+			$this->commands->getGetOpt()->getHelpText(['logger' => $this->logger()]);
 			$code = 1;
 		}
 

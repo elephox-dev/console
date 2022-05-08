@@ -10,8 +10,7 @@ use GetOpt\ArgumentException;
 use GetOpt\ArgumentException\Missing;
 use GetOpt\Command;
 use GetOpt\GetOpt;
-use Iterator;
-use LogicException;
+use GetOpt\HelpInterface;
 
 class CommandCollection
 {
@@ -74,12 +73,10 @@ class CommandCollection
 		$this->add($template);
 	}
 
-	public function process(array $argv): null|int|LoggerHelpRenderer
+	public function process(InvokedCommandLine $commandLine): null|int|HelpInterface
 	{
-		array_shift($argv); // MAYBE: remove this line because the argv might not contain the script name
-
 		try {
-			$this->getOpt->process($argv);
+			$this->getOpt->process($commandLine->arguments);
 		} catch (Missing $missing) {
 			throw new InvalidCommandLineException($missing->getMessage(), previous: $missing);
 		} catch (ArgumentException) {
@@ -110,14 +107,23 @@ class CommandCollection
 		return null;
 	}
 
-	public function getHelp(): LoggerHelpRenderer
+	public function getHelp(): HelpInterface
 	{
-		$helper = $this->getOpt->getHelp();
-		if (!$helper instanceof LoggerHelpRenderer) {
-			throw new LogicException('Help renderer is not a LoggerHelpRenderer');
+		return $this->getOpt->getHelp();
+	}
+
+	public function findByName(string $name): ?CommandTemplate
+	{
+		$command = $this->getOpt->getCommand($name);
+		if (!$command) {
+			return null;
 		}
 
-		return $helper;
+		if (!$command instanceof CommandTemplate) {
+			return null;
+		}
+
+		return $command;
 	}
 
 //	public function findCompiled(RawCommandInvocation $invocation): CompiledCommandHandler
